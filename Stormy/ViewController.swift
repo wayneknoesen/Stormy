@@ -10,9 +10,11 @@ import UIKit
 import CoreLocation
 
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, CLLocationManagerDelegate {
     
     private let apiKey = "7c505f66e89315ea30ef5096d540f444"
+    
+    let locationManager = CLLocationManager()
     
     @IBOutlet weak var iconView: UIImageView!
     @IBOutlet weak var currentTimeLabel: UILabel!
@@ -22,23 +24,44 @@ class ViewController: UIViewController {
     @IBOutlet weak var summaryLabel: UILabel!
     @IBOutlet weak var refreshButton: UIButton!
     @IBOutlet weak var refreshActivityIndicator: UIActivityIndicatorView!
+    @IBOutlet weak var locationLabel: UILabel!
     
-    
+    var currentCoordiate: CLLocationCoordinate2D?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
         refreshActivityIndicator.hidden = true
-        getCurrentWeatherData()
+        findMyLocation()
         
     }
     
     
-    func getCurrentWeatherData() -> Void {
+    func findMyLocation(){
+        
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.startUpdatingLocation()
+        
+    }
     
+    func locationManager(manager: CLLocationManager!, didUpdateLocations locations: [AnyObject]!) {
+        getCurrentWeatherData(locationManager.location.coordinate)
+    
+    }
+    
+    func locationManager(manager: CLLocationManager!, didFailWithError error: NSError!) {
+        println("Error" + error.localizedDescription)
+    }
+
+    
+    func getCurrentWeatherData(coordinate: CLLocationCoordinate2D) -> Void {
+        
+        
         let baseURL = NSURL (string: "https://api.forecast.io/forecast/\(apiKey)/")
-        let forcastURL = NSURL (string: "37.8267,-122.423", relativeToURL: baseURL)
+        let forcastURL = NSURL (string: "\(coordinate.latitude),\(coordinate.longitude)", relativeToURL: baseURL)
         
         let sharedSession = NSURLSession.sharedSession()
         let downloadTask : NSURLSessionDownloadTask = sharedSession.downloadTaskWithURL(forcastURL, completionHandler: { (location: NSURL!, response: NSURLResponse!, error: NSError!) -> Void in
@@ -56,6 +79,7 @@ class ViewController: UIViewController {
                     self.humidityLabel.text = "\(currentWeather.humidity)"
                     self.precipitationLabel.text = "\(currentWeather.precipProbability)"
                     self.summaryLabel.text = "\(currentWeather.summary)"
+                    self.locationLabel.text = "\(currentWeather.myLocation)"
                     
                     
                     //Stop refresh animation
@@ -95,7 +119,7 @@ class ViewController: UIViewController {
     
     @IBAction func refresh() {
         
-        getCurrentWeatherData()
+        //getCurrentWeatherData()
         
         refreshButton.hidden = true
         refreshActivityIndicator.hidden = false

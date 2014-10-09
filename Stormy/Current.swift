@@ -17,16 +17,19 @@ struct Current {
     var humidity: Double
     var precipProbability: Double
     var summary: String
+    var myLocation: String
     var icon: UIImage?
     
     init(weatherDictionary: NSDictionary) {
+        let locationDict : NSDictionary = weatherDictionary as NSDictionary
         let currentWeatherDictionary: NSDictionary = weatherDictionary["currently"] as NSDictionary
+        
         
         temperature = currentWeatherDictionary["temperature"] as Int
         humidity = currentWeatherDictionary["humidity"] as Double
         precipProbability = currentWeatherDictionary["precipProbability"] as Double
         summary = currentWeatherDictionary["summary"] as String
-        
+        myLocation = locationDict["timezone"] as String
         let currentTimeIntValue = currentWeatherDictionary["time"] as Int
         currentTime = dateStringFromUnixtime(currentTimeIntValue)
         
